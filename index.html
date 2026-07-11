@@ -4,19 +4,19 @@
     <meta charset="UTF-8">
     <!-- Ajuste crucial para evitar pinch-to-zoom y doble-tap zoom en iOS/Android -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>XAT.COM CRT EAM96</title>
+    <title>XAT.COM crt EAM96</title>
     <!-- Fuente para textos técnicos del HUD -->
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
         :root {
-            --color-on: #00ff41;  
+            --color-on: #00ff41;  /* Verde Neón/Fósforo puro */
             --color-dim: #004d13;
-            --color-bg: #010a01;  
+            --color-bg: #010a01;  /* Fondo casi negro para alto contraste */
             --color-glow: rgba(0, 255, 65, 0.6);
-            --dot: 4px; 
+            --dot: 4px; /* Tamaño de los diodos LED por defecto */
         }
 
-        
+        /* En móviles, reducimos el tamaño de los LEDs para mejor resolución */
         @media (max-width: 600px) {
             :root { --dot: 3px; }
         }
@@ -32,6 +32,7 @@
             color: var(--color-on);
             overflow: hidden;
             display: flex; justify-content: center; align-items: center;
+            padding-top: 65px; /* Espacio reservado para el top de xat.com */
             height: 100vh; /* Fallback para navegadores antiguos */
             height: 100dvh; /* Altura dinámica perfecta para móviles (evita salto por barra de URL) */
             min-height: -webkit-fill-available; /* Ajuste estricto para Safari Móvil */
@@ -156,8 +157,10 @@
         /* Efecto Typewriter */
         .typing-container { display: flex; align-items: center; }
         .typewriter {
-            overflow: hidden; white-space: nowrap; border-right: 0;
-            animation: typing 4s steps(25, end) infinite alternate;
+            overflow: hidden; white-space: nowrap; border-right: 0; width: 0;
+            /* Se añade un retraso "both 1.2s" para que comience al terminar de arrancar el HUD superior */
+            -webkit-animation: typing 4s steps(25, end) infinite alternate both 1.2s;
+            animation: typing 4s steps(25, end) infinite alternate both 1.2s;
         }
         .cursor { animation: blink-cursor 1s step-end infinite; }
 
@@ -243,6 +246,19 @@
         .arrow:nth-child(2) { animation-delay: 0.2s; }
         .arrow:nth-child(3) { animation-delay: 0.4s; }
 
+        /* --- SECUENCIA DE INICIO (HACK / BOOT ANIMATIONS) --- */
+        .hud-boot-1 {
+            opacity: 0;
+            -webkit-animation: system-boot 0.4s forwards 0.8s;
+            animation: system-boot 0.4s forwards 0.8s;
+        }
+
+        .hud-boot-2 {
+            opacity: 0;
+            -webkit-animation: system-boot 0.5s forwards 1.6s;
+            animation: system-boot 0.5s forwards 1.6s;
+        }
+
         /* --- BOTÓN DE COLOR CRT --- */
         .crt-btn {
             position: absolute; top: 65px; right: 5%; z-index: 90; /* Z-index por debajo de 100 para que la textura CRT le afecte */
@@ -252,8 +268,12 @@
             font-weight: bold; cursor: pointer;
             text-shadow: 0 0 10px var(--color-glow);
             transition: all 0.2s ease; text-transform: uppercase; letter-spacing: 2px;
-            -webkit-animation: crt-flicker 0.15s infinite; /* Efecto de parpadeo CRT de pantalla */
-            animation: crt-flicker 0.15s infinite;
+            -webkit-appearance: none; /* Elimina el estilo de botón gris y redondeado por defecto en iPhones */
+            appearance: none;
+            border-radius: 0;
+            opacity: 0; /* Oculto inicialmente para secuencia de inicio */
+            -webkit-animation: system-boot 0.3s forwards 2.4s, crt-flicker 0.15s infinite 2.7s; 
+            animation: system-boot 0.3s forwards 2.4s, crt-flicker 0.15s infinite 2.7s;
         }
         .crt-btn::before { content: '['; margin-right: 8px; opacity: 0.7; }
         .crt-btn::after { content: ']'; margin-left: 8px; opacity: 0.7; }
@@ -265,6 +285,25 @@
         .crt-btn:active { -webkit-transform: scale(0.95); transform: scale(0.95); }
 
         /* --- ANIMACIONES KEYFRAMES --- */
+        
+        /* Keyframe de Glitch para encendido secuencial */
+        @-webkit-keyframes system-boot {
+            0% { opacity: 0; }
+            25% { opacity: 1; }
+            50% { opacity: 0; }
+            75% { opacity: 1; }
+            85% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+        @keyframes system-boot {
+            0% { opacity: 0; }
+            25% { opacity: 1; }
+            50% { opacity: 0; }
+            75% { opacity: 1; }
+            85% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+
         @keyframes tv-static { 0% { background-position: 0px 0px; } 100% { background-position: 100px 100px; } }
         @keyframes scanline-scroll { 0% { background-position: 0 0; } 100% { background-position: 0 100vh; } }
         @keyframes float { 0%, 100% { transform: translate(-50%, -50%) rotate(-15deg); } 50% { transform: translate(-50%, -55%) rotate(-15deg); } }
@@ -314,13 +353,13 @@
     <!-- Contenedor HUD Mockup -->
     <div class="dashboard">
         
-        <!-- HUD Superior -->
-        <div>
+        <!-- HUD Superior (Se enciende primero) -->
+        <div class="hud-boot-1">
             <div class="hud-row">
                 <!-- Izquierda: Texto animado -->
                 <div class="hud-left">
                     <div class="typing-container">
-                        <span class="typewriter">establishing conecction</span><span class="cursor">_</span>
+                        <span class="typewriter">ESTABLISHING CONNECTION</span><span class="cursor">_</span>
                     </div>
                 </div>
                 
@@ -335,9 +374,9 @@
             <div class="hud-line"></div>
         </div>
 
-        <!-- Pantalla Central -->
+        <!-- Pantalla Central (Siempre Visible) -->
         <div class="main-display">
-            <!-- Planeta Saturno  -->
+            <!-- Planeta Saturno Absolutamente Impecable -->
             <div class="saturn">
                 <div class="saturn-ring ring-back"></div>
                 <div class="planet-body"></div>
@@ -345,8 +384,8 @@
             </div>
         </div>
 
-        <!-- Bloque Inferior Integrado (Textos Mini y HUD Inferior) -->
-        <div class="bottom-section">
+        <!-- Bloque Inferior Integrado (Se enciende después) -->
+        <div class="bottom-section hud-boot-2">
             
             <!-- Textos y flechas anclados aquí para que nunca se desajusten -->
             <div class="mini-hud-row">
@@ -355,7 +394,7 @@
                     <span class="arrow">&lt;</span>
                     <span class="arrow">&lt;</span>
                 </div>
-                <div class="mini-xat"> xat.com </div>
+                <div class="mini-xat"> XAT.COM </div>
             </div>
 
             <div class="hud-line"></div>
@@ -417,9 +456,9 @@
         });
 
 
-       
+        // --- LÓGICA DE LA INTERFAZ ---
 
-        
+        // 1. Reloj en tiempo real
         function updateClock() {
             const now = new Date();
             const hours = String(now.getHours()).padStart(2, '0');
@@ -453,15 +492,18 @@
         const procNum = document.getElementById('processingNumber');
         let isCalculating = false;
         
-        setInterval(() => {
-            if (Math.random() > 0.8) isCalculating = !isCalculating;
-            
-            if (isCalculating) {
-                procNum.innerText = Math.floor(Math.random() * 99).toString().padStart(2, '0');
-            } else {
-                procNum.innerText = '42';
-            }
-        }, 50);
+        // Se añade un retraso (setTimeout) sincronizado con la animación CSS para que empiece a calcular justo al aparecer.
+        setTimeout(() => {
+            setInterval(() => {
+                if (Math.random() > 0.8) isCalculating = !isCalculating;
+                
+                if (isCalculating) {
+                    procNum.innerText = Math.floor(Math.random() * 99).toString().padStart(2, '0');
+                } else {
+                    procNum.innerText = '42';
+                }
+            }, 50);
+        }, 1600);
     </script>
 </body>
 </html>
